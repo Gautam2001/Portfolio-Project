@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import com.portfolio.Entity.AboutMeEntity;
 
 public interface AboutMeDao extends MongoRepository<AboutMeEntity, String> {
-	
+
 	Optional<AboutMeEntity> findTopByOrderByUploadAtDesc();
-	
+
 }

@@ -10,6 +10,6 @@ public class Video {
 	private String url;
 
 	private String name;
-	
+
 	private String description;
 }

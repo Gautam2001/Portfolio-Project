@@ -13,9 +13,9 @@ import lombok.Data;
 public class ProjectListWrapper {
 
 	@NotBlank(message = "uploadedBy is required in ProjectListWrapper")
-    private String uploadedBy;
-    
-    @Valid
-    @NotNull(message = "Projects is required in ProjectListWrapper")
-    private List<ProjectEntity> projects;
+	private String uploadedBy;
+
+	@Valid
+	@NotNull(message = "Projects is required in ProjectListWrapper")
+	private List<ProjectEntity> projects;
 }

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +12,42 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.portfolio.DAO.ProjectDao;
+import com.portfolio.DAO.UserDAO;
+import com.portfolio.Entity.UserEntity;
 
 import jakarta.validation.ValidationException;
 
 public class CommonUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(CommonUtils.class);
+
+//	public static void ValidateUserWithToken(String username) {
+//		String tokenUser = SecurityContextHolder.getContext().getAuthentication().getName();
+//		if (!tokenUser.equals(username)) {
+//			throw new AppException("Access denied: Token does not match requested user.", HttpStatus.FORBIDDEN);
+//		}
+//	}
+
+	public static String normalizeUsername(String username) {
+		if (username == null || username.trim().isEmpty()) {
+			throw new AppException("Username is required", HttpStatus.BAD_REQUEST);
+		}
+
+		return username.trim().toLowerCase();
+	}
+
+	public static void ensureUserDoesNotExist(UserDAO userDAO, String username) {
+		Optional<UserEntity> userOptional = userDAO.findTopByUsername(username);
+		if (userOptional.isPresent()) {
+			throw new AppException("User already exists. please Login.", HttpStatus.CONFLICT);
+		}
+	}
+//
+//	public static MessengerUsersEntity fetchUserIfExists(MessengerUsersDao messengerUserDao, String username,
+//			String message) {
+//		return messengerUserDao.getUserByUsername(username)
+//				.orElseThrow(() -> new AppException(message, HttpStatus.BAD_REQUEST));
+//	}
 	
 	public static void checkProjectByTitle(ProjectDao portfolioDao, String title, String message) {
 		if (portfolioDao.existsByTitle(title)) {

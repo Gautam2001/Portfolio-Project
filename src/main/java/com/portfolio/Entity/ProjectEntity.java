@@ -20,25 +20,25 @@ import lombok.Data;
 @Document(collection = "Project")
 public class ProjectEntity {
 
-    @Id
-    private String id;
+	@Id
+	private String id;
 
-    @NotBlank(message = "Title is required in Project")
-    private String title;
+	@NotBlank(message = "Title is required in Project")
+	private String title;
 
-    @NotNull(message = "Title Image is required in Project")
-    private Image titleImage;
-    
-    @NotBlank(message = "Short Description is required in Project")
-    private String shortDesc;
-    
-    @Valid
-    private List<Link> links;
+	@NotNull(message = "Title Image is required in Project")
+	private Image titleImage;
 
-    @Valid
-    @NotEmpty(message = "Project must contain at least one section in Project")
-    private List<ProjectSection> sections;
+	@NotBlank(message = "Short Description is required in Project")
+	private String shortDesc;
 
-    private String uploadedBy;
-    private LocalDateTime uploadAt;
+	@Valid
+	private List<Link> links;
+
+	@Valid
+	@NotEmpty(message = "Project must contain at least one section in Project")
+	private List<ProjectSection> sections;
+
+	private String uploadedBy;
+	private LocalDateTime uploadAt;
 }

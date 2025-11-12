@@ -6,11 +6,15 @@ import com.portfolio.DTO.Image;
 import com.portfolio.DTO.Link;
 
 public interface ProjectPreviewProjection {
-	
+
 	String getId();
-    String getTitle();
-    Image getTitleImage();
-    String getShortDesc();
-    List<Link> getLinks();
+
+	String getTitle();
+
+	Image getTitleImage();
+
+	String getShortDesc();
+
+	List<Link> getLinks();
 
 }

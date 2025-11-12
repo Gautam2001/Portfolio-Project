@@ -22,37 +22,37 @@ public class AboutMeEntity {
 
 	@Id
 	private String id;
-	
+
 	@NotBlank(message = "Name is required in About Me")
-    private String name;
+	private String name;
 
 	@Valid
-    @NotNull(message = "Image is required in About Me")
-    private Image image;
-    
-    @NotBlank(message = "One Liner is required in About Me")
-    private String oneLiner;
-    
-    @NotBlank(message = "Description is required in About Me")
-    private String description;
-    
-    @Valid
-    @NotNull(message = "Experience is required in About Me")
-    private List<ExpAndEdu> experience;
-    
-    @Valid
-    @NotNull(message = "Education is required in About Me")
-    private List<ExpAndEdu> education;
-    
-    @NotEmpty(message = "Skills is required in About Me")
-    private List<String> skills;
-    
-    @Valid
-    @NotNull(message = "Contact is required in About Me")
-    private List<Link> contact;
-    
-    @NotBlank(message = "uploadedBy is required in About Me")
-    private String uploadedBy;
-    private LocalDateTime uploadAt;
+	@NotNull(message = "Image is required in About Me")
+	private Image image;
+
+	@NotBlank(message = "One Liner is required in About Me")
+	private String oneLiner;
+
+	@NotBlank(message = "Description is required in About Me")
+	private String description;
+
+	@Valid
+	@NotNull(message = "Experience is required in About Me")
+	private List<ExpAndEdu> experience;
+
+	@Valid
+	@NotNull(message = "Education is required in About Me")
+	private List<ExpAndEdu> education;
+
+	@NotEmpty(message = "Skills is required in About Me")
+	private List<String> skills;
+
+	@Valid
+	@NotNull(message = "Contact is required in About Me")
+	private List<Link> contact;
+
+	@NotBlank(message = "uploadedBy is required in About Me")
+	private String uploadedBy;
+	private LocalDateTime uploadAt;
 
 }

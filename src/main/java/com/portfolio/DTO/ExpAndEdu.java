@@ -7,21 +7,21 @@ import lombok.Data;
 
 @Data
 public class ExpAndEdu {
-	
+
 	@NotBlank(message = "Position is required in ExpAndEdu")
-    private String position;
-	
+	private String position;
+
 	@NotBlank(message = "Name is required in ExpAndEdu")
-    private String name;
-	
+	private String name;
+
 	@NotBlank(message = "Year is required in ExpAndEdu")
-    private String year;
-	
+	private String year;
+
 	@NotBlank(message = "Description is required in ExpAndEdu")
-    private String description;
-	
+	private String description;
+
 	@Valid
 	@NotNull(message = "Logo is required in ExpAndEdu")
-    private Image logo;
-	
+	private Image logo;
+
 }

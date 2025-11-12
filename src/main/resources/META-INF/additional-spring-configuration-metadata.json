@@ -1,0 +1,12 @@
+{"properties": [
+  {
+    "name": "login.service.url",
+    "type": "java.lang.String",
+    "description": "Provides the URL for my other project, Login microservice"
+  },
+  {
+    "name": "confirmation.code",
+    "type": "java.lang.String",
+    "description": "Confirmation code for deleting a project"
+  }
+]}

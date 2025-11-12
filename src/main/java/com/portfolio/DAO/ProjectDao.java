@@ -9,7 +9,7 @@ import com.portfolio.Entity.ProjectEntity;
 public interface ProjectDao extends MongoRepository<ProjectEntity, String> {
 
 	boolean existsByTitle(String title);
-	
+
 	List<ProjectPreviewProjection> findAllBy();
-	
+
 }
