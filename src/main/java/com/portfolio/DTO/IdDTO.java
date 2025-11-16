@@ -8,7 +8,7 @@ public class IdDTO {
 
 	@NotBlank(message = "Id is required")
 	private String id;
-	
+
 	private Long confCode;
 
 }

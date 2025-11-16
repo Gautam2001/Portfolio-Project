@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 
 @Component
 public interface ProjectService {
-	
+
 	HashMap<String, Object> joinPortfolioApp(@Valid UsernameDTO usernameDTO);
 
 	HashMap<String, Object> uploadAboutMe(MultipartFile aboutMe);

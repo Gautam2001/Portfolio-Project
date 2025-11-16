@@ -54,16 +54,16 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Autowired
 	ProjectDao ProjectDao;
-	
+
 	@Autowired
 	UserDAO userDAO;
-	
+
 	@Autowired
 	CallLoginService callLoginService;
-	
+
 	@Value("${confirmation.code}")
 	private Long confirmationCode;
-	
+
 	@Override
 	public HashMap<String, Object> joinPortfolioApp(@Valid UsernameDTO usernameDTO) {
 		String username = CommonUtils.normalizeUsername(usernameDTO.getUsername());
@@ -92,69 +92,132 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Override
 	public HashMap<String, Object> uploadAboutMe(MultipartFile aboutMeFile) {
-		CommonUtils.logMethodEntry(this, "Uploading About Me");
-		HashMap<String, Object> response = new HashMap<>();
+	    CommonUtils.logMethodEntry(this, "Uploading About Me");
+	    HashMap<String, Object> response = new HashMap<>();
 
-		if (aboutMeFile.isEmpty()) {
-			throw new AppException("No data in file found.", HttpStatus.BAD_REQUEST);
-		}
+	    if (aboutMeFile.isEmpty()) {
+	        throw new AppException("No data in file found.", HttpStatus.BAD_REQUEST);
+	    }
 
-		if (!Objects.requireNonNull(aboutMeFile.getOriginalFilename()).endsWith(".json")) {
-			throw new AppException("Invalid file type. Only .json files are allowed.", HttpStatus.BAD_REQUEST);
-		}
+	    if (!Objects.requireNonNull(aboutMeFile.getOriginalFilename()).endsWith(".json")) {
+	        throw new AppException("Invalid file type. Only .json files are allowed.", HttpStatus.BAD_REQUEST);
+	    }
 
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			AboutMeEntity aboutMe = objectMapper.readValue(aboutMeFile.getInputStream(), AboutMeEntity.class);
+	    try {
+	        ObjectMapper objectMapper = new ObjectMapper();
+	        AboutMeEntity aboutMe = objectMapper.readValue(aboutMeFile.getInputStream(), AboutMeEntity.class);
 
-			Set<ConstraintViolation<AboutMeEntity>> violations = validator.validate(aboutMe);
-			if (!violations.isEmpty()) {
-				String message = violations.stream().map(ConstraintViolation::getMessage)
-						.collect(Collectors.joining(", "));
-				throw new AppException("Validation failed: " + message, HttpStatus.BAD_REQUEST);
-			}
+	        // Validation
+	        Set<ConstraintViolation<AboutMeEntity>> violations = validator.validate(aboutMe);
+	        if (!violations.isEmpty()) {
+	            String message = violations.stream()
+	                    .map(ConstraintViolation::getMessage)
+	                    .collect(Collectors.joining(", "));
+	            throw new AppException("Validation failed: " + message, HttpStatus.BAD_REQUEST);
+	        }
 
-			// If AboutMe already exists
-			Optional<AboutMeEntity> existing = aboutMeDao.findTopByOrderByUploadAtDesc();
-			aboutMe.setUploadAt(LocalDateTime.now());
+	        // Generate sections METADATA
+	        List<String> sections = new ArrayList<>();
 
-			existing.ifPresent(e -> aboutMe.setId(e.getId()));
+	        if (aboutMe.getMyData() != null) {
+	            sections.add("Home");
+	        }
 
-			aboutMeDao.save(aboutMe);
+	        if (aboutMe.getExperience() != null && !aboutMe.getExperience().isEmpty()) {
+	            sections.add("Experience");
+	        }
 
-			response.put("uploadedBy", aboutMe.getUploadedBy());
-			response.put("uploadAt", aboutMe.getUploadAt());
+	        if (aboutMe.getEducation() != null && !aboutMe.getEducation().isEmpty()) {
+	            sections.add("Education");
+	        }
 
-			String message = existing.isPresent() ? "About Me updated successfully" : "About Me uploaded successfully";
+	        if (aboutMe.getSkills() != null && !aboutMe.getSkills().isEmpty()) {
+	            sections.add("Skills");
+	        }
 
-			return CommonUtils.prepareResponse(response, message, true);
+	        if (aboutMe.getContact() != null && !aboutMe.getContact().isEmpty()) {
+	            sections.add("Contact");
+	        }
 
-		} catch (MismatchedInputException mie) {
-			throw new AppException("JSON structure is invalid or missing fields: " + mie.getOriginalMessage(),
-					HttpStatus.BAD_REQUEST);
-		} catch (JsonParseException jpe) {
-			throw new AppException("Failed to parse JSON: " + jpe.getOriginalMessage(), HttpStatus.BAD_REQUEST);
-		} catch (IOException e) {
-			throw new AppException("Error reading JSON file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+	        aboutMe.setSections(sections);
+
+	        // Handle existing document
+	        Optional<AboutMeEntity> existing = aboutMeDao.findTopByOrderByUploadAtDesc();
+	        aboutMe.setUploadAt(LocalDateTime.now());
+
+	        existing.ifPresent(e -> aboutMe.setId(e.getId()));
+
+	        // Save
+	        aboutMeDao.save(aboutMe);
+
+	        response.put("uploadedBy", aboutMe.getUploadedBy());
+	        response.put("uploadAt", aboutMe.getUploadAt());
+
+	        String message = existing.isPresent()
+	                ? "About Me updated successfully"
+	                : "About Me uploaded successfully";
+
+	        return CommonUtils.prepareResponse(response, message, true);
+
+	    } catch (MismatchedInputException mie) {
+	        throw new AppException(
+	                "JSON structure is invalid or missing fields: " + mie.getOriginalMessage(),
+	                HttpStatus.BAD_REQUEST
+	        );
+	    } catch (JsonParseException jpe) {
+	        throw new AppException(
+	                "Failed to parse JSON: " + jpe.getOriginalMessage(),
+	                HttpStatus.BAD_REQUEST
+	        );
+	    } catch (IOException e) {
+	        throw new AppException(
+	                "Error reading JSON file: " + e.getMessage(),
+	                HttpStatus.INTERNAL_SERVER_ERROR
+	        );
+	    }
 	}
+
 
 	@Override
 	public HashMap<String, Object> getAboutMe() {
-		CommonUtils.logMethodEntry(this, "Fetching AboutMe");
-		HashMap<String, Object> response = new HashMap<>();
+	    CommonUtils.logMethodEntry(this, "Fetching AboutMe");
+	    HashMap<String, Object> response = new HashMap<>();
 
-		Optional<AboutMeEntity> aboutMe = aboutMeDao.findTopByOrderByUploadAtDesc();
+	    Optional<AboutMeEntity> aboutMeOpt = aboutMeDao.findTopByOrderByUploadAtDesc();
 
-		if (aboutMe.isPresent()) {
-			response.put("aboutMe", aboutMeDao.findTopByOrderByUploadAtDesc());
-			List<ProjectPreviewProjection> projectPreviews = ProjectDao.findAllBy();
-			response.put("projects", projectPreviews);
-			return CommonUtils.prepareResponse(response, "aboutMe fetched Successfully.", true);
-		} else {
-			throw new AppException("AboutMe not found, check DB and try again.", HttpStatus.BAD_REQUEST);
-		}
+	    if (aboutMeOpt.isEmpty()) {
+	        throw new AppException("AboutMe not found, check DB and try again.", HttpStatus.BAD_REQUEST);
+	    }
+
+	    AboutMeEntity aboutMe = aboutMeOpt.get();
+
+	    List<ProjectPreviewProjection> projectPreviews = ProjectDao.findAllBy();
+	    List<String> sections = new ArrayList<>(aboutMe.getSections()); // existing stored sections
+
+	    if (projectPreviews != null && !projectPreviews.isEmpty()) {
+	        response.put("projects", projectPreviews);
+
+	        int insertIndex = sections.size();
+	        int contactIndex = sections.indexOf("Contact");
+	        int certificatesIndex = sections.indexOf("Certificates");
+
+	        if (contactIndex != -1 && certificatesIndex != -1) {
+	            insertIndex = Math.min(contactIndex, certificatesIndex);
+	        } else if (contactIndex != -1) {
+	            insertIndex = contactIndex;
+	        } else if (certificatesIndex != -1) {
+	            insertIndex = certificatesIndex;
+	        }
+
+	        sections.add(insertIndex, "Projects");
+	    }
+
+	    aboutMe.setSections(sections);
+	    response.put("aboutMe", aboutMe);
+
+	    return CommonUtils.prepareResponse(response, "aboutMe fetched Successfully.", true);
 	}
+
 
 	@Override
 	public HashMap<String, Object> uploadProjects(MultipartFile projects) {
@@ -244,7 +307,7 @@ public class ProjectServiceImpl implements ProjectService {
 			throw new AppException("Error reading JSON file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	private void validateProject(ProjectEntity project) {
 		CommonUtils.logMethodEntry(this, "Validating Project: " + project.getTitle());
 
@@ -308,9 +371,11 @@ public class ProjectServiceImpl implements ProjectService {
 		Optional<ProjectEntity> project = ProjectDao.findById(idDTO.getId());
 		if (project.isPresent()) {
 			response.put("projects", project);
-			return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " fetched Successfully.", true);
+			return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " fetched Successfully.",
+					true);
 		} else {
-			return CommonUtils.prepareResponse(response, "No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+			return CommonUtils.prepareResponse(response,
+					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
 		}
 	}
 
@@ -323,12 +388,15 @@ public class ProjectServiceImpl implements ProjectService {
 		if (project.isPresent()) {
 			if (Objects.equals(confirmationCode, idDTO.getConfCode())) {
 				ProjectDao.deleteById(idDTO.getId());
-				return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " deleted Successfully.", true);
-			}else {
-				return CommonUtils.prepareResponse(response, "Verification failed, cannot delete project with Id: " + idDTO.getId(), false);
+				return CommonUtils.prepareResponse(response,
+						"Project with Id: " + idDTO.getId() + " deleted Successfully.", true);
+			} else {
+				return CommonUtils.prepareResponse(response,
+						"Verification failed, cannot delete project with Id: " + idDTO.getId(), false);
 			}
 		} else {
-			return CommonUtils.prepareResponse(response, "No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+			return CommonUtils.prepareResponse(response,
+					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
 		}
 	}
 

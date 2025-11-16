@@ -7,8 +7,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.portfolio.DTO.ExpAndEdu;
-import com.portfolio.DTO.Image;
 import com.portfolio.DTO.Link;
+import com.portfolio.DTO.MyData;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -23,18 +23,9 @@ public class AboutMeEntity {
 	@Id
 	private String id;
 
-	@NotBlank(message = "Name is required in About Me")
-	private String name;
-
 	@Valid
-	@NotNull(message = "Image is required in About Me")
-	private Image image;
-
-	@NotBlank(message = "One Liner is required in About Me")
-	private String oneLiner;
-
-	@NotBlank(message = "Description is required in About Me")
-	private String description;
+	@NotNull(message = "MyData is required in About Me")
+	private MyData myData;
 
 	@Valid
 	@NotNull(message = "Experience is required in About Me")
@@ -50,6 +41,8 @@ public class AboutMeEntity {
 	@Valid
 	@NotNull(message = "Contact is required in About Me")
 	private List<Link> contact;
+	
+	private List<String> sections;
 
 	@NotBlank(message = "uploadedBy is required in About Me")
 	private String uploadedBy;

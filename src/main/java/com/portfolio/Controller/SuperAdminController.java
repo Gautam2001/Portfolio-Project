@@ -24,7 +24,7 @@ public class SuperAdminController {
 
 	@Autowired
 	ProjectService ProjectService;
-	
+
 	@PostMapping("/aboutMeUpload")
 	public ResponseEntity<HashMap<String, Object>> aboutMeUpload(@RequestParam MultipartFile aboutMe) {
 		CommonUtils.logMethodEntry(this);
@@ -51,7 +51,7 @@ public class SuperAdminController {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@PostMapping("/deleteProjectById")
 	public ResponseEntity<HashMap<String, Object>> deleteProjectById(@RequestBody @Valid IdDTO idDTO) {
 		CommonUtils.logMethodEntry(this);

@@ -48,7 +48,7 @@ public class CommonUtils {
 //		return messengerUserDao.getUserByUsername(username)
 //				.orElseThrow(() -> new AppException(message, HttpStatus.BAD_REQUEST));
 //	}
-	
+
 	public static void checkProjectByTitle(ProjectDao portfolioDao, String title, String message) {
 		if (portfolioDao.existsByTitle(title)) {
 			throw new ValidationException(message);
