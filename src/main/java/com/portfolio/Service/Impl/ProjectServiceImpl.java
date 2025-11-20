@@ -21,9 +21,11 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.portfolio.DAO.AboutMeDao;
+import com.portfolio.DAO.ContactUsDao;
 import com.portfolio.DAO.ProjectDao;
 import com.portfolio.DAO.ProjectPreviewProjection;
 import com.portfolio.DAO.UserDAO;
+import com.portfolio.DTO.ContactUsDTO;
 import com.portfolio.DTO.IdDTO;
 import com.portfolio.DTO.Image;
 import com.portfolio.DTO.ProjectListWrapper;
@@ -31,12 +33,14 @@ import com.portfolio.DTO.ProjectSection;
 import com.portfolio.DTO.UsernameDTO;
 import com.portfolio.DTO.Video;
 import com.portfolio.Entity.AboutMeEntity;
+import com.portfolio.Entity.ContactUsEntity;
 import com.portfolio.Entity.ProjectEntity;
 import com.portfolio.Entity.UserEntity;
 import com.portfolio.Service.ProjectService;
 import com.portfolio.ServiceExt.CallLoginService;
 import com.portfolio.Utility.AppException;
 import com.portfolio.Utility.CommonUtils;
+import com.portfolio.Utility.EmailService;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
@@ -57,12 +61,21 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Autowired
 	UserDAO userDAO;
+	
+	@Autowired
+	ContactUsDao contactUsDao;
 
 	@Autowired
 	CallLoginService callLoginService;
+	
+	@Autowired
+	private EmailService emailService;
 
 	@Value("${confirmation.code}")
 	private Long confirmationCode;
+	
+	@Value("${spring.mail.username}")
+	private String email;
 
 	@Override
 	public HashMap<String, Object> joinPortfolioApp(@Valid UsernameDTO usernameDTO) {
@@ -397,6 +410,34 @@ public class ProjectServiceImpl implements ProjectService {
 		} else {
 			return CommonUtils.prepareResponse(response,
 					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+		}
+	}
+	
+	@Override
+	public HashMap<String, Object> contactUs(@Valid ContactUsDTO contactUsDTO) {
+		CommonUtils.logMethodEntry(this);
+		HashMap<String, Object> response = new HashMap<>();
+
+		try {
+			ContactUsEntity contactRequestsEntity = new ContactUsEntity(contactUsDTO.getName(),
+					contactUsDTO.getEmail(), contactUsDTO.getMessage());
+
+			ContactUsEntity contactSaved = contactUsDao.save(contactRequestsEntity);
+			if (contactSaved == null) {
+				return CommonUtils.prepareResponse(response, "Failed to save the Feedback. Please try again.", false);
+			}
+			try {
+				
+				emailService.sendOtpEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(), contactUsDTO.getMessage());
+			} catch (Exception e) {
+				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
+			}
+
+			return CommonUtils.prepareResponse(response, " Thank you for the Feedback!", true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to save the member. Please try again.");
 		}
 	}
 

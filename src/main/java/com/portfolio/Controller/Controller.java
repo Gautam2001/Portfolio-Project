@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.portfolio.DTO.ContactUsDTO;
 import com.portfolio.DTO.IdDTO;
 import com.portfolio.DTO.UsernameDTO;
 import com.portfolio.Service.ProjectService;
@@ -55,6 +56,14 @@ public class Controller {
 		CommonUtils.logMethodEntry(this);
 
 		HashMap<String, Object> response = ProjectService.getProjectById(idDTO);
+
+		return ResponseEntity.ok(response);
+	}
+	
+	@PostMapping("/contactUs")
+	public ResponseEntity<HashMap<String, Object>> contactUs(@RequestBody @Valid ContactUsDTO contactUsDTO) {
+		CommonUtils.logMethodEntry(this);
+		HashMap<String, Object> response = ProjectService.contactUs(contactUsDTO);
 
 		return ResponseEntity.ok(response);
 	}

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.portfolio.DTO.ContactUsDTO;
 import com.portfolio.DTO.IdDTO;
 import com.portfolio.DTO.UsernameDTO;
 
@@ -26,5 +27,7 @@ public interface ProjectService {
 	HashMap<String, Object> getProjectById(@Valid IdDTO idDTO);
 
 	HashMap<String, Object> deleteProjectById(@Valid IdDTO idDTO);
+
+	HashMap<String, Object> contactUs(@Valid ContactUsDTO contactUsDTO);
 
 }
