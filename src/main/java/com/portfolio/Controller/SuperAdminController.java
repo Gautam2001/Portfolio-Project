@@ -42,12 +42,21 @@ public class SuperAdminController {
 
 		return ResponseEntity.ok(response);
 	}
-
-	@GetMapping("/getAllProjects")
-	public ResponseEntity<HashMap<String, Object>> getAllProjects() {
+	
+	@PostMapping("/downloadProjectById")
+	public ResponseEntity<HashMap<String, Object>> downloadProjectById(@RequestBody @Valid IdDTO idDTO) {
 		CommonUtils.logMethodEntry(this);
 
-		HashMap<String, Object> response = ProjectService.getAllProjects();
+		HashMap<String, Object> response = ProjectService.downloadProjectById(idDTO);
+
+		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/downloadAllProjects")
+	public ResponseEntity<HashMap<String, Object>> downloadAllProjects() {
+		CommonUtils.logMethodEntry(this);
+
+		HashMap<String, Object> response = ProjectService.downloadAllProjects();
 
 		return ResponseEntity.ok(response);
 	}
@@ -57,6 +66,15 @@ public class SuperAdminController {
 		CommonUtils.logMethodEntry(this);
 
 		HashMap<String, Object> response = ProjectService.deleteProjectById(idDTO);
+
+		return ResponseEntity.ok(response);
+	}
+	
+	@GetMapping("/deleteAllProjects")
+	public ResponseEntity<HashMap<String, Object>> deleteAllProjects() {
+		CommonUtils.logMethodEntry(this);
+
+		HashMap<String, Object> response = ProjectService.deleteAllProjects();
 
 		return ResponseEntity.ok(response);
 	}

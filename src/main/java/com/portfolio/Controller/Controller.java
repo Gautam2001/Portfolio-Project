@@ -32,6 +32,15 @@ public class Controller {
 
 		return ResponseEntity.ok(CommonUtils.prepareResponse(response, "pong", true));
 	}
+	
+	@PostMapping("/exists")
+	public ResponseEntity<HashMap<String, Object>> userExistsCheck(@RequestBody @Valid UsernameDTO usernameDTO) {
+		CommonUtils.logMethodEntry(this);
+
+		HashMap<String, Object> response = ProjectService.userExistsCheck(usernameDTO);
+
+		return ResponseEntity.ok(response);
+	}
 
 	@PostMapping("/join")
 	public ResponseEntity<HashMap<String, Object>> joinPortfolioApp(@RequestBody @Valid UsernameDTO usernameDTO) {

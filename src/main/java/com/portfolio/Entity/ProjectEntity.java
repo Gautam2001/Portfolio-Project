@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.portfolio.DTO.Image;
 import com.portfolio.DTO.Link;
 import com.portfolio.DTO.ProjectSection;
@@ -40,5 +41,7 @@ public class ProjectEntity {
 	private List<ProjectSection> sections;
 
 	private String uploadedBy;
+	
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private LocalDateTime uploadAt;
 }

@@ -18,8 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.portfolio.DAO.AboutMeDao;
 import com.portfolio.DAO.ContactUsDao;
 import com.portfolio.DAO.ProjectDao;
@@ -70,12 +74,27 @@ public class ProjectServiceImpl implements ProjectService {
 	
 	@Autowired
 	private EmailService emailService;
-
-	@Value("${confirmation.code}")
-	private Long confirmationCode;
 	
 	@Value("${spring.mail.username}")
 	private String email;
+	
+	@Override
+	public HashMap<String, Object> userExistsCheck(@Valid UsernameDTO usernameDTO) {
+		String username = CommonUtils.normalizeUsername(usernameDTO.getUsername());
+		CommonUtils.logMethodEntry(this, "User Exists Check Request for: " + username);
+		HashMap<String, Object> response = new HashMap<>();
+
+		Optional<UserEntity> userOpt = userDAO.findTopByUsername(username);
+		if (userOpt.isPresent()) {
+			UserEntity user = userOpt.get();
+			response.put("id", user.getId());
+			response.put("name", user.getUsername());
+			response.put("joinedAt", user.getJoinedAt());
+			return CommonUtils.prepareResponse(response, "User exists in Portfolio.", true);
+		} else {
+			return CommonUtils.prepareResponse(response, "User does not exists in Portfolio.", false);
+		}
+	}
 
 	@Override
 	public HashMap<String, Object> joinPortfolioApp(@Valid UsernameDTO usernameDTO) {
@@ -117,7 +136,12 @@ public class ProjectServiceImpl implements ProjectService {
 	    }
 
 	    try {
-	        ObjectMapper objectMapper = new ObjectMapper();
+	    	ObjectMapper objectMapper = JsonMapper.builder()
+	    	        .addModule(new JavaTimeModule())
+	    	        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+	    	        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+	    	        .build();
+
 	        AboutMeEntity aboutMe = objectMapper.readValue(aboutMeFile.getInputStream(), AboutMeEntity.class);
 
 	        // Validation
@@ -246,7 +270,12 @@ public class ProjectServiceImpl implements ProjectService {
 		}
 
 		try {
-			ObjectMapper objectMapper = new ObjectMapper();
+			ObjectMapper objectMapper = JsonMapper.builder()
+	    	        .addModule(new JavaTimeModule())
+	    	        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+	    	        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+	    	        .build();
+
 			ProjectListWrapper wrapper = objectMapper.readValue(projects.getInputStream(), ProjectListWrapper.class);
 			List<ProjectEntity> projectList = wrapper.getProjects();
 
@@ -360,16 +389,39 @@ public class ProjectServiceImpl implements ProjectService {
 			}
 		}
 	}
+	
+	@Override
+	public HashMap<String, Object> downloadProjectById(@Valid IdDTO idDTO) {
+		CommonUtils.logMethodEntry(this, "Fetching Project by Id: " + idDTO.getId());
+		HashMap<String, Object> response = new HashMap<>();
+
+		Optional<ProjectEntity> project = ProjectDao.findById(idDTO.getId());
+		if (project.isPresent()) {
+			ProjectEntity fetchedProjectEntity = project.get();
+			fetchedProjectEntity.setId(null);
+			ProjectListWrapper projectListWrapper = new ProjectListWrapper();
+			projectListWrapper.setProjects(List.of(fetchedProjectEntity));
+			projectListWrapper.setUploadedBy(fetchedProjectEntity.getUploadedBy());
+			response.put("projectListWrapper", projectListWrapper);
+			return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " fetched Successfully.",
+					true);
+		} else {
+			return CommonUtils.prepareResponse(response,
+					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+		}
+	}
 
 	@Override
-	public HashMap<String, Object> getAllProjects() {
+	public HashMap<String, Object> downloadAllProjects() {
 		CommonUtils.logMethodEntry(this, "Fetching all Projects");
 		HashMap<String, Object> response = new HashMap<>();
 
 		List<ProjectEntity> Projects = ProjectDao.findAll();
 		if (!Projects.isEmpty()) {
-			response.put("projects", Projects);
-			response.put("projectCount", Projects.size());
+			ProjectListWrapper projectListWrapper = new ProjectListWrapper();
+			projectListWrapper.setProjects(Projects);
+			projectListWrapper.setUploadedBy(Projects.get(0).getUploadedBy());
+			response.put("projectListWrapper", projectListWrapper);
 			return CommonUtils.prepareResponse(response, "Projects fetched Successfully.", true);
 		} else {
 			return CommonUtils.prepareResponse(response, "No projetcs found, check DB and try again.", false);
@@ -383,7 +435,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 		Optional<ProjectEntity> project = ProjectDao.findById(idDTO.getId());
 		if (project.isPresent()) {
-			response.put("projects", project);
+			response.put("project", project.get());
 			return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " fetched Successfully.",
 					true);
 		} else {
@@ -399,18 +451,24 @@ public class ProjectServiceImpl implements ProjectService {
 
 		Optional<ProjectEntity> project = ProjectDao.findById(idDTO.getId());
 		if (project.isPresent()) {
-			if (Objects.equals(confirmationCode, idDTO.getConfCode())) {
-				ProjectDao.deleteById(idDTO.getId());
+			ProjectDao.deleteById(idDTO.getId());
 				return CommonUtils.prepareResponse(response,
 						"Project with Id: " + idDTO.getId() + " deleted Successfully.", true);
-			} else {
-				return CommonUtils.prepareResponse(response,
-						"Verification failed, cannot delete project with Id: " + idDTO.getId(), false);
-			}
 		} else {
 			return CommonUtils.prepareResponse(response,
 					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
 		}
+	}
+	
+	@Override
+	public HashMap<String, Object> deleteAllProjects() {
+		CommonUtils.logMethodEntry(this, "Deleting All Projects");
+		HashMap<String, Object> response = new HashMap<>();
+
+		ProjectDao.deleteAll();
+				return CommonUtils.prepareResponse(response,
+						"All Projects deleted Successfully.", true);
+		
 	}
 	
 	@Override
