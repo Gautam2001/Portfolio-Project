@@ -42,7 +42,7 @@ public class SuperAdminController {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@PostMapping("/downloadProjectById")
 	public ResponseEntity<HashMap<String, Object>> downloadProjectById(@RequestBody @Valid IdDTO idDTO) {
 		CommonUtils.logMethodEntry(this);
@@ -69,7 +69,7 @@ public class SuperAdminController {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@GetMapping("/deleteAllProjects")
 	public ResponseEntity<HashMap<String, Object>> deleteAllProjects() {
 		CommonUtils.logMethodEntry(this);

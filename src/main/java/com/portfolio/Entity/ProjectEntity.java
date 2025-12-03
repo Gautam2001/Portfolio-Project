@@ -9,39 +9,41 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.portfolio.DTO.Image;
 import com.portfolio.DTO.Link;
-import com.portfolio.DTO.ProjectSection;
+import com.portfolio.DTO.ProjectDetail;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-@Data
 @Document(collection = "Project")
+@Data
 public class ProjectEntity {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
-	@NotBlank(message = "Title is required in Project")
-	private String title;
+    @NotBlank
+    private String title;
 
-	@NotNull(message = "Title Image is required in Project")
-	private Image titleImage;
+    @NotNull
+    private Image titleImage;
 
-	@NotBlank(message = "Short Description is required in Project")
-	private String shortDesc;
+    @NotBlank
+    private String shortDesc;
 
-	@Valid
-	private List<Link> links;
+    // GitHub frontend/backend + demo link
+    @Valid
+    private List<Link> links;
 
-	@Valid
-	@NotEmpty(message = "Project must contain at least one section in Project")
-	private List<ProjectSection> sections;
+    // The full detail for the project page
+    @Valid
+    @NotNull
+    private ProjectDetail detail;
 
-	private String uploadedBy;
-	
-	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
-	private LocalDateTime uploadAt;
+    private String uploadedBy;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private LocalDateTime uploadAt;
 }
+

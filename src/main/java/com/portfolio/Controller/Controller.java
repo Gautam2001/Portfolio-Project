@@ -32,7 +32,7 @@ public class Controller {
 
 		return ResponseEntity.ok(CommonUtils.prepareResponse(response, "pong", true));
 	}
-	
+
 	@PostMapping("/exists")
 	public ResponseEntity<HashMap<String, Object>> userExistsCheck(@RequestBody @Valid UsernameDTO usernameDTO) {
 		CommonUtils.logMethodEntry(this);
@@ -68,7 +68,7 @@ public class Controller {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@PostMapping("/contactUs")
 	public ResponseEntity<HashMap<String, Object>> contactUs(@RequestBody @Valid ContactUsDTO contactUsDTO) {
 		CommonUtils.logMethodEntry(this);

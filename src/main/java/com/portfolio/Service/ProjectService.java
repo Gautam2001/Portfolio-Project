@@ -13,7 +13,7 @@ import jakarta.validation.Valid;
 
 @Component
 public interface ProjectService {
-	
+
 	HashMap<String, Object> userExistsCheck(@Valid UsernameDTO usernameDTO);
 
 	HashMap<String, Object> joinPortfolioApp(@Valid UsernameDTO usernameDTO);
@@ -23,7 +23,7 @@ public interface ProjectService {
 	HashMap<String, Object> getAboutMe();
 
 	HashMap<String, Object> uploadProjects(MultipartFile projects);
-	
+
 	HashMap<String, Object> downloadProjectById(@Valid IdDTO idDTO);
 
 	HashMap<String, Object> downloadAllProjects();
@@ -31,7 +31,7 @@ public interface ProjectService {
 	HashMap<String, Object> getProjectById(@Valid IdDTO idDTO);
 
 	HashMap<String, Object> deleteProjectById(@Valid IdDTO idDTO);
-	
+
 	HashMap<String, Object> deleteAllProjects();
 
 	HashMap<String, Object> contactUs(@Valid ContactUsDTO contactUsDTO);

@@ -25,9 +25,9 @@ public class ContactUsEntity {
 
 	@NotBlank(message = "Message cannot be Empty")
 	private String message;
-	
+
 	private Instant joinedAt = Instant.now();
-	
+
 	public ContactUsEntity(@NotBlank(message = "Name cannot be Empty") String name,
 			@NotBlank(message = "Email cannot be Empty") @Email(message = "Invalid email format") String email,
 			@NotBlank(message = "Message cannot be Empty") String message) {

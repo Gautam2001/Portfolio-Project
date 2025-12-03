@@ -3,6 +3,7 @@ package com.portfolio.Service.Impl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,10 +33,10 @@ import com.portfolio.DAO.UserDAO;
 import com.portfolio.DTO.ContactUsDTO;
 import com.portfolio.DTO.IdDTO;
 import com.portfolio.DTO.Image;
+import com.portfolio.DTO.Link;
+import com.portfolio.DTO.ProjectDetail;
 import com.portfolio.DTO.ProjectListWrapper;
-import com.portfolio.DTO.ProjectSection;
 import com.portfolio.DTO.UsernameDTO;
-import com.portfolio.DTO.Video;
 import com.portfolio.Entity.AboutMeEntity;
 import com.portfolio.Entity.ContactUsEntity;
 import com.portfolio.Entity.ProjectEntity;
@@ -65,19 +66,19 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Autowired
 	UserDAO userDAO;
-	
+
 	@Autowired
 	ContactUsDao contactUsDao;
 
 	@Autowired
 	CallLoginService callLoginService;
-	
+
 	@Autowired
 	private EmailService emailService;
-	
+
 	@Value("${spring.mail.username}")
 	private String email;
-	
+
 	@Override
 	public HashMap<String, Object> userExistsCheck(@Valid UsernameDTO usernameDTO) {
 		String username = CommonUtils.normalizeUsername(usernameDTO.getUsername());
@@ -124,137 +125,123 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Override
 	public HashMap<String, Object> uploadAboutMe(MultipartFile aboutMeFile) {
-	    CommonUtils.logMethodEntry(this, "Uploading About Me");
-	    HashMap<String, Object> response = new HashMap<>();
+		CommonUtils.logMethodEntry(this, "Uploading About Me");
+		HashMap<String, Object> response = new HashMap<>();
 
-	    if (aboutMeFile.isEmpty()) {
-	        throw new AppException("No data in file found.", HttpStatus.BAD_REQUEST);
-	    }
+		if (aboutMeFile.isEmpty()) {
+			throw new AppException("No data in file found.", HttpStatus.BAD_REQUEST);
+		}
 
-	    if (!Objects.requireNonNull(aboutMeFile.getOriginalFilename()).endsWith(".json")) {
-	        throw new AppException("Invalid file type. Only .json files are allowed.", HttpStatus.BAD_REQUEST);
-	    }
+		if (!Objects.requireNonNull(aboutMeFile.getOriginalFilename()).endsWith(".json")) {
+			throw new AppException("Invalid file type. Only .json files are allowed.", HttpStatus.BAD_REQUEST);
+		}
 
-	    try {
-	    	ObjectMapper objectMapper = JsonMapper.builder()
-	    	        .addModule(new JavaTimeModule())
-	    	        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-	    	        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-	    	        .build();
+		try {
+			ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule())
+					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+					.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-	        AboutMeEntity aboutMe = objectMapper.readValue(aboutMeFile.getInputStream(), AboutMeEntity.class);
+			AboutMeEntity aboutMe = objectMapper.readValue(aboutMeFile.getInputStream(), AboutMeEntity.class);
 
-	        // Validation
-	        Set<ConstraintViolation<AboutMeEntity>> violations = validator.validate(aboutMe);
-	        if (!violations.isEmpty()) {
-	            String message = violations.stream()
-	                    .map(ConstraintViolation::getMessage)
-	                    .collect(Collectors.joining(", "));
-	            throw new AppException("Validation failed: " + message, HttpStatus.BAD_REQUEST);
-	        }
+			// Validation
+			Set<ConstraintViolation<AboutMeEntity>> violations = validator.validate(aboutMe);
+			if (!violations.isEmpty()) {
+				String message = violations.stream().map(ConstraintViolation::getMessage)
+						.collect(Collectors.joining(", "));
+				throw new AppException("Validation failed: " + message, HttpStatus.BAD_REQUEST);
+			}
 
-	        // Generate sections METADATA
-	        List<String> sections = new ArrayList<>();
+			// Generate sections METADATA
+			List<String> sections = new ArrayList<>();
 
-	        if (aboutMe.getMyData() != null) {
-	            sections.add("Home");
-	        }
+			if (aboutMe.getMyData() != null) {
+				sections.add("Home");
+			}
 
-	        if (aboutMe.getExperience() != null && !aboutMe.getExperience().isEmpty()) {
-	            sections.add("Experience");
-	        }
+			if (aboutMe.getExperience() != null && !aboutMe.getExperience().isEmpty()) {
+				sections.add("Experience");
+			}
 
-	        if (aboutMe.getEducation() != null && !aboutMe.getEducation().isEmpty()) {
-	            sections.add("Education");
-	        }
+			if (aboutMe.getEducation() != null && !aboutMe.getEducation().isEmpty()) {
+				sections.add("Education");
+			}
 
-	        if (aboutMe.getSkills() != null && !aboutMe.getSkills().isEmpty()) {
-	            sections.add("Skills");
-	        }
+			if (aboutMe.getSkills() != null && !aboutMe.getSkills().isEmpty()) {
+				sections.add("Skills");
+			}
 
-	        if (aboutMe.getContact() != null && !aboutMe.getContact().isEmpty()) {
-	            sections.add("Contact");
-	        }
+			if (aboutMe.getContact() != null && !aboutMe.getContact().isEmpty()) {
+				sections.add("Contact");
+			}
 
-	        aboutMe.setSections(sections);
+			aboutMe.setSections(sections);
 
-	        // Handle existing document
-	        Optional<AboutMeEntity> existing = aboutMeDao.findTopByOrderByUploadAtDesc();
-	        aboutMe.setUploadAt(LocalDateTime.now());
+			// Handle existing document
+			Optional<AboutMeEntity> existing = aboutMeDao.findTopByOrderByUploadAtDesc();
+			aboutMe.setUploadAt(LocalDateTime.now());
 
-	        existing.ifPresent(e -> aboutMe.setId(e.getId()));
+			existing.ifPresent(e -> aboutMe.setId(e.getId()));
 
-	        // Save
-	        aboutMeDao.save(aboutMe);
+			// Save
+			aboutMeDao.save(aboutMe);
 
-	        response.put("uploadedBy", aboutMe.getUploadedBy());
-	        response.put("uploadAt", aboutMe.getUploadAt());
+			response.put("uploadedBy", aboutMe.getUploadedBy());
+			response.put("uploadAt", aboutMe.getUploadAt());
 
-	        String message = existing.isPresent()
-	                ? "About Me updated successfully"
-	                : "About Me uploaded successfully";
+			String message = existing.isPresent() ? "About Me updated successfully" : "About Me uploaded successfully";
 
-	        return CommonUtils.prepareResponse(response, message, true);
+			return CommonUtils.prepareResponse(response, message, true);
 
-	    } catch (MismatchedInputException mie) {
-	        throw new AppException(
-	                "JSON structure is invalid or missing fields: " + mie.getOriginalMessage(),
-	                HttpStatus.BAD_REQUEST
-	        );
-	    } catch (JsonParseException jpe) {
-	        throw new AppException(
-	                "Failed to parse JSON: " + jpe.getOriginalMessage(),
-	                HttpStatus.BAD_REQUEST
-	        );
-	    } catch (IOException e) {
-	        throw new AppException(
-	                "Error reading JSON file: " + e.getMessage(),
-	                HttpStatus.INTERNAL_SERVER_ERROR
-	        );
-	    }
+		} catch (MismatchedInputException mie) {
+			throw new AppException("JSON structure is invalid or missing fields: " + mie.getOriginalMessage(),
+					HttpStatus.BAD_REQUEST);
+		} catch (JsonParseException jpe) {
+			throw new AppException("Failed to parse JSON: " + jpe.getOriginalMessage(), HttpStatus.BAD_REQUEST);
+		} catch (IOException e) {
+			throw new AppException("Error reading JSON file: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
-
 
 	@Override
 	public HashMap<String, Object> getAboutMe() {
-	    CommonUtils.logMethodEntry(this, "Fetching AboutMe");
-	    HashMap<String, Object> response = new HashMap<>();
+		CommonUtils.logMethodEntry(this, "Fetching AboutMe");
+		HashMap<String, Object> response = new HashMap<>();
 
-	    Optional<AboutMeEntity> aboutMeOpt = aboutMeDao.findTopByOrderByUploadAtDesc();
+		Optional<AboutMeEntity> aboutMeOpt = aboutMeDao.findTopByOrderByUploadAtDesc();
 
-	    if (aboutMeOpt.isEmpty()) {
-	        throw new AppException("AboutMe not found, check DB and try again.", HttpStatus.BAD_REQUEST);
-	    }
+		if (aboutMeOpt.isEmpty()) {
+			throw new AppException("AboutMe not found, check DB and try again.", HttpStatus.BAD_REQUEST);
+		}
 
-	    AboutMeEntity aboutMe = aboutMeOpt.get();
+		AboutMeEntity aboutMe = aboutMeOpt.get();
 
-	    List<ProjectPreviewProjection> projectPreviews = ProjectDao.findAllBy();
-	    List<String> sections = new ArrayList<>(aboutMe.getSections()); // existing stored sections
+		List<ProjectPreviewProjection> projectPreviews = ProjectDao.findAllBy();
+		List<String> sections = new ArrayList<>(aboutMe.getSections()); // existing stored sections
 
-	    if (projectPreviews != null && !projectPreviews.isEmpty()) {
-	        response.put("projects", projectPreviews);
+		if (projectPreviews != null && !projectPreviews.isEmpty()) {
+			Collections.reverse(projectPreviews);
+			response.put("projects", projectPreviews);
 
-	        int insertIndex = sections.size();
-	        int contactIndex = sections.indexOf("Contact");
-	        int certificatesIndex = sections.indexOf("Certificates");
+			int insertIndex = sections.size();
+			int contactIndex = sections.indexOf("Contact");
+			int certificatesIndex = sections.indexOf("Certificates");
 
-	        if (contactIndex != -1 && certificatesIndex != -1) {
-	            insertIndex = Math.min(contactIndex, certificatesIndex);
-	        } else if (contactIndex != -1) {
-	            insertIndex = contactIndex;
-	        } else if (certificatesIndex != -1) {
-	            insertIndex = certificatesIndex;
-	        }
+			if (contactIndex != -1 && certificatesIndex != -1) {
+				insertIndex = Math.min(contactIndex, certificatesIndex);
+			} else if (contactIndex != -1) {
+				insertIndex = contactIndex;
+			} else if (certificatesIndex != -1) {
+				insertIndex = certificatesIndex;
+			}
 
-	        sections.add(insertIndex, "Projects");
-	    }
+			sections.add(insertIndex, "Projects");
+		}
 
-	    aboutMe.setSections(sections);
-	    response.put("aboutMe", aboutMe);
+		aboutMe.setSections(sections);
+		response.put("aboutMe", aboutMe);
 
-	    return CommonUtils.prepareResponse(response, "aboutMe fetched Successfully.", true);
+		return CommonUtils.prepareResponse(response, "aboutMe fetched Successfully.", true);
 	}
-
 
 	@Override
 	public HashMap<String, Object> uploadProjects(MultipartFile projects) {
@@ -270,11 +257,9 @@ public class ProjectServiceImpl implements ProjectService {
 		}
 
 		try {
-			ObjectMapper objectMapper = JsonMapper.builder()
-	    	        .addModule(new JavaTimeModule())
-	    	        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-	    	        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-	    	        .build();
+			ObjectMapper objectMapper = JsonMapper.builder().addModule(new JavaTimeModule())
+					.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+					.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
 			ProjectListWrapper wrapper = objectMapper.readValue(projects.getInputStream(), ProjectListWrapper.class);
 			List<ProjectEntity> projectList = wrapper.getProjects();
@@ -351,45 +336,54 @@ public class ProjectServiceImpl implements ProjectService {
 	}
 
 	private void validateProject(ProjectEntity project) {
-		CommonUtils.logMethodEntry(this, "Validating Project: " + project.getTitle());
+	    CommonUtils.logMethodEntry(this, "Validating Project: " + project.getTitle());
 
-		if (project.getSections() == null || project.getSections().isEmpty()) {
-			throw new ValidationException("Project must have at least one section");
-		}
+	    if (project.getTitle() == null || project.getTitle().isBlank()) {
+	        throw new ValidationException("Project title is required");
+	    }
 
-		for (ProjectSection section : project.getSections()) {
-			String type = section.getName() != null ? section.getName().toLowerCase() : "";
+	    if (project.getTitleImage() == null || project.getTitleImage().getUrl() == null) {
+	        throw new ValidationException("Project must include a valid title image");
+	    }
 
-			// Demo section must have at least one video
-			if ("demo".equals(type) && (section.getVideos() == null || section.getVideos().isEmpty())) {
-				throw new ValidationException("Demo section must include at least one video");
-			}
+	    if (project.getShortDesc() == null || project.getShortDesc().isBlank()) {
+	        throw new ValidationException("Short description is required");
+	    }
 
-			// Architecture section must have at least one image
-			if ("architecture".equals(type) && (section.getImages() == null || section.getImages().isEmpty())) {
-				throw new ValidationException("Architecture section must include at least one image");
-			}
+	    ProjectDetail detail = project.getDetail();
+	    if (detail == null) {
+	        throw new ValidationException("Project detail section is required");
+	    }
 
-			// Validate image URLs
-			if (section.getImages() != null) {
-				for (Image img : section.getImages()) {
-					if (img.getUrl() == null || !img.getUrl().startsWith("http")) {
-						throw new ValidationException("Invalid image URL: " + img.getUrl());
-					}
-				}
-			}
+	    // Overview should have at least one paragraph
+	    if (detail.getOverview() == null || detail.getOverview().isEmpty()) {
+	        throw new ValidationException("Project overview must contain at least one paragraph");
+	    }
 
-			// Optional: validate video URLs similarly
-			if (section.getVideos() != null) {
-				for (Video vid : section.getVideos()) {
-					if (vid.getUrl() == null || !vid.getUrl().startsWith("http")) {
-						throw new ValidationException("Invalid video URL: " + vid.getUrl());
-					}
-				}
-			}
-		}
+	    // Tech stack is required to give technical context
+	    if (detail.getTechStack() == null || detail.getTechStack().isEmpty()) {
+	        throw new ValidationException("Tech stack cannot be empty");
+	    }
+
+	    // Screenshots: optional but validate URLs if provided
+	    if (detail.getScreenshots() != null) {
+	        for (Image img : detail.getScreenshots()) {
+	            if (img.getUrl() == null || !img.getUrl().startsWith("http")) {
+	                throw new ValidationException("Invalid screenshot URL: " + img.getUrl());
+	            }
+	        }
+	    }
+
+	    // Validate top-level links (GitHub, demo)
+	    if (project.getLinks() != null) {
+	        for (Link link : project.getLinks()) {
+	            if (link.getUrl() == null || !link.getUrl().startsWith("http")) {
+	                throw new ValidationException("Invalid link URL: " + link.getUrl());
+	            }
+	        }
+	    }
 	}
-	
+
 	@Override
 	public HashMap<String, Object> downloadProjectById(@Valid IdDTO idDTO) {
 		CommonUtils.logMethodEntry(this, "Fetching Project by Id: " + idDTO.getId());
@@ -440,7 +434,7 @@ public class ProjectServiceImpl implements ProjectService {
 					true);
 		} else {
 			return CommonUtils.prepareResponse(response,
-					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+					"No project found with Id: " + idDTO.getId() + ", check DB and try again.", false);
 		}
 	}
 
@@ -452,41 +446,41 @@ public class ProjectServiceImpl implements ProjectService {
 		Optional<ProjectEntity> project = ProjectDao.findById(idDTO.getId());
 		if (project.isPresent()) {
 			ProjectDao.deleteById(idDTO.getId());
-				return CommonUtils.prepareResponse(response,
-						"Project with Id: " + idDTO.getId() + " deleted Successfully.", true);
+			return CommonUtils.prepareResponse(response, "Project with Id: " + idDTO.getId() + " deleted Successfully.",
+					true);
 		} else {
 			return CommonUtils.prepareResponse(response,
-					"No projetc found with Id: " + idDTO.getId() + ", check DB and try again.", false);
+					"No project found with Id: " + idDTO.getId() + ", check DB and try again.", false);
 		}
 	}
-	
+
 	@Override
 	public HashMap<String, Object> deleteAllProjects() {
 		CommonUtils.logMethodEntry(this, "Deleting All Projects");
 		HashMap<String, Object> response = new HashMap<>();
 
 		ProjectDao.deleteAll();
-				return CommonUtils.prepareResponse(response,
-						"All Projects deleted Successfully.", true);
-		
+		return CommonUtils.prepareResponse(response, "All Projects deleted Successfully.", true);
+
 	}
-	
+
 	@Override
 	public HashMap<String, Object> contactUs(@Valid ContactUsDTO contactUsDTO) {
 		CommonUtils.logMethodEntry(this);
 		HashMap<String, Object> response = new HashMap<>();
 
 		try {
-			ContactUsEntity contactRequestsEntity = new ContactUsEntity(contactUsDTO.getName(),
-					contactUsDTO.getEmail(), contactUsDTO.getMessage());
+			ContactUsEntity contactRequestsEntity = new ContactUsEntity(contactUsDTO.getName(), contactUsDTO.getEmail(),
+					contactUsDTO.getMessage());
 
 			ContactUsEntity contactSaved = contactUsDao.save(contactRequestsEntity);
 			if (contactSaved == null) {
 				return CommonUtils.prepareResponse(response, "Failed to save the Feedback. Please try again.", false);
 			}
 			try {
-				
-				emailService.sendOtpEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(), contactUsDTO.getMessage());
+
+				emailService.sendOtpEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
+						contactUsDTO.getMessage());
 			} catch (Exception e) {
 				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
 			}

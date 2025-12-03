@@ -17,8 +17,8 @@ public class EmailService {
 		SimpleMailMessage message = new SimpleMailMessage();
 		message.setTo(toEmail);
 		message.setSubject("Feedback from Portfolio Website");
-		message.setText("Hi Gautam, \n\nThe feedback received from Portfolio Website is here: \n\nEmail: " + email + " \nName: " + name
-				+ "\n\nBelow is the message: \n" + messageInfo);
+		message.setText("Hi Gautam, \n\nThe feedback received from Portfolio Website is here: \n\nEmail: " + email
+				+ " \nName: " + name + "\n\nBelow is the message: \n" + messageInfo);
 
 		mailSender.send(message);
 	}

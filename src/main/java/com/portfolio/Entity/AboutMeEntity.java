@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.portfolio.DTO.ExpAndEdu;
 import com.portfolio.DTO.Link;
@@ -43,14 +42,13 @@ public class AboutMeEntity {
 	@Valid
 	@NotNull(message = "Contact is required in About Me")
 	private List<Link> contact;
-	
+
 	private List<String> sections;
 
 	@NotBlank(message = "uploadedBy is required in About Me")
 	private String uploadedBy;
-	
+
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private LocalDateTime uploadAt;
-
 
 }

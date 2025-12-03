@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class Video {
 
-	@NotBlank(message = "URL is required in Video")
+	@NotBlank(message = "URL is required in Image")
 	private String url;
 
 	private String name;
