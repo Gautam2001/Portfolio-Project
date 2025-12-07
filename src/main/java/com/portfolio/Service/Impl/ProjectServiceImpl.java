@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -75,9 +74,6 @@ public class ProjectServiceImpl implements ProjectService {
 
 	@Autowired
 	private EmailService emailService;
-
-	@Value("${spring.mail.username}")
-	private String email;
 
 	@Override
 	public HashMap<String, Object> userExistsCheck(@Valid UsernameDTO usernameDTO) {
@@ -479,7 +475,7 @@ public class ProjectServiceImpl implements ProjectService {
 			}
 			try {
 
-				emailService.sendFeedbackEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
+				emailService.sendFeedbackEmail(contactUsDTO.getName(), contactUsDTO.getEmail(),
 						contactUsDTO.getMessage());
 			} catch (Exception e) {
 				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
