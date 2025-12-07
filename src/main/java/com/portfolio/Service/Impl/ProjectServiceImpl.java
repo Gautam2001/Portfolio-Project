@@ -479,7 +479,7 @@ public class ProjectServiceImpl implements ProjectService {
 			}
 			try {
 
-				emailService.sendOtpEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
+				emailService.sendFeedbackEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
 						contactUsDTO.getMessage());
 			} catch (Exception e) {
 				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);

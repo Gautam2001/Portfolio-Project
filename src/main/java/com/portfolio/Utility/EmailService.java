@@ -1,25 +1,44 @@
 package com.portfolio.Utility;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
+import com.mailjet.client.ClientOptions;
+import com.mailjet.client.MailjetClient;
+import com.mailjet.client.MailjetRequest;
+import com.mailjet.client.MailjetResponse;
+import com.mailjet.client.resource.Emailv31;
 
 @Service
 public class EmailService {
 
-	@Autowired
-	private JavaMailSender mailSender;
+	private final MailjetClient client;
 
-	public void sendOtpEmail(String toEmail, String name, String email, String messageInfo) throws MessagingException {
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setTo(toEmail);
-		message.setSubject("Feedback from Portfolio Website");
-		message.setText("Hi Gautam, \n\nThe feedback received from Portfolio Website is here: \n\nEmail: " + email
-				+ " \nName: " + name + "\n\nBelow is the message: \n" + messageInfo);
+	public EmailService(@Value("${MJ_APIKEY_PUBLIC}") String apiKey, @Value("${MJ_APIKEY_PRIVATE}") String apiSecret) {
+		ClientOptions options = ClientOptions.builder().apiKey(apiKey).apiSecretKey(apiSecret).build();
+		this.client = new MailjetClient(options);
+	}
+	
+	public void sendFeedbackEmail(String fromEmail, String name, String email, String messageInfo) {
+		JSONObject message = new JSONObject()
+				.put("From", new JSONObject().put("Email", fromEmail).put("Name", "Gautam Singhal"))
+				.put("To", new JSONArray().put(new JSONObject().put("Email", fromEmail).put("Name", "Gautam Singhal")))
+				.put("Subject", "Feedback from Wrap & Wow Website")
+				.put("TextPart", "Hi Gautam, \n\nThe feedback received from Wrap & Wow Website is here: \n\nEmail: "
+						+ email + " \nName: " + name + "\n\nBelow is the message: \n" + messageInfo);
 
-		mailSender.send(message);
+		MailjetRequest request = new MailjetRequest(Emailv31.resource).property(Emailv31.MESSAGES,
+				new JSONArray().put(message));
+
+		try {
+			MailjetResponse response = client.post(request);
+			System.out.println("Mailjet Status: " + response.getStatus());
+			System.out.println(response.getData());
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Failed to send OTP email via Mailjet");
+		}
 	}
 }
