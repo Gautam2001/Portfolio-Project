@@ -20,30 +20,29 @@ import lombok.Data;
 @Data
 public class ProjectEntity {
 
-    @Id
-    private String id;
+	@Id
+	private String id;
 
-    @NotBlank
-    private String title;
+	@NotBlank
+	private String title;
 
-    @NotNull
-    private Image titleImage;
+	@NotNull
+	private Image titleImage;
 
-    @NotBlank
-    private String shortDesc;
+	@NotBlank
+	private String shortDesc;
 
-    // GitHub frontend/backend + demo link
-    @Valid
-    private List<Link> links;
+	// GitHub frontend/backend + demo link
+	@Valid
+	private List<Link> links;
 
-    // The full detail for the project page
-    @Valid
-    @NotNull
-    private ProjectDetail detail;
+	// The full detail for the project page
+	@Valid
+	@NotNull
+	private ProjectDetail detail;
 
-    private String uploadedBy;
+	private String uploadedBy;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private LocalDateTime uploadAt;
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	private LocalDateTime uploadAt;
 }
-

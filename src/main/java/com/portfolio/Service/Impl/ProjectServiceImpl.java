@@ -336,52 +336,52 @@ public class ProjectServiceImpl implements ProjectService {
 	}
 
 	private void validateProject(ProjectEntity project) {
-	    CommonUtils.logMethodEntry(this, "Validating Project: " + project.getTitle());
+		CommonUtils.logMethodEntry(this, "Validating Project: " + project.getTitle());
 
-	    if (project.getTitle() == null || project.getTitle().isBlank()) {
-	        throw new ValidationException("Project title is required");
-	    }
+		if (project.getTitle() == null || project.getTitle().isBlank()) {
+			throw new ValidationException("Project title is required");
+		}
 
-	    if (project.getTitleImage() == null || project.getTitleImage().getUrl() == null) {
-	        throw new ValidationException("Project must include a valid title image");
-	    }
+		if (project.getTitleImage() == null || project.getTitleImage().getUrl() == null) {
+			throw new ValidationException("Project must include a valid title image");
+		}
 
-	    if (project.getShortDesc() == null || project.getShortDesc().isBlank()) {
-	        throw new ValidationException("Short description is required");
-	    }
+		if (project.getShortDesc() == null || project.getShortDesc().isBlank()) {
+			throw new ValidationException("Short description is required");
+		}
 
-	    ProjectDetail detail = project.getDetail();
-	    if (detail == null) {
-	        throw new ValidationException("Project detail section is required");
-	    }
+		ProjectDetail detail = project.getDetail();
+		if (detail == null) {
+			throw new ValidationException("Project detail section is required");
+		}
 
-	    // Overview should have at least one paragraph
-	    if (detail.getOverview() == null || detail.getOverview().isEmpty()) {
-	        throw new ValidationException("Project overview must contain at least one paragraph");
-	    }
+		// Overview should have at least one paragraph
+		if (detail.getOverview() == null || detail.getOverview().isEmpty()) {
+			throw new ValidationException("Project overview must contain at least one paragraph");
+		}
 
-	    // Tech stack is required to give technical context
-	    if (detail.getTechStack() == null || detail.getTechStack().isEmpty()) {
-	        throw new ValidationException("Tech stack cannot be empty");
-	    }
+		// Tech stack is required to give technical context
+		if (detail.getTechStack() == null || detail.getTechStack().isEmpty()) {
+			throw new ValidationException("Tech stack cannot be empty");
+		}
 
-	    // Screenshots: optional but validate URLs if provided
-	    if (detail.getScreenshots() != null) {
-	        for (Image img : detail.getScreenshots()) {
-	            if (img.getUrl() == null || !img.getUrl().startsWith("http")) {
-	                throw new ValidationException("Invalid screenshot URL: " + img.getUrl());
-	            }
-	        }
-	    }
+		// Screenshots: optional but validate URLs if provided
+		if (detail.getScreenshots() != null) {
+			for (Image img : detail.getScreenshots()) {
+				if (img.getUrl() == null || !img.getUrl().startsWith("http")) {
+					throw new ValidationException("Invalid screenshot URL: " + img.getUrl());
+				}
+			}
+		}
 
-	    // Validate top-level links (GitHub, demo)
-	    if (project.getLinks() != null) {
-	        for (Link link : project.getLinks()) {
-	            if (link.getUrl() == null || !link.getUrl().startsWith("http")) {
-	                throw new ValidationException("Invalid link URL: " + link.getUrl());
-	            }
-	        }
-	    }
+		// Validate top-level links (GitHub, demo)
+		if (project.getLinks() != null) {
+			for (Link link : project.getLinks()) {
+				if (link.getUrl() == null || !link.getUrl().startsWith("http")) {
+					throw new ValidationException("Invalid link URL: " + link.getUrl());
+				}
+			}
+		}
 	}
 
 	@Override

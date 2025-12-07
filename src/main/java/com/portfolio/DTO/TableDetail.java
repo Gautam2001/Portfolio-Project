@@ -10,10 +10,10 @@ public class TableDetail {
 
 	@NotBlank(message = "name is required.")
 	private String name;
-	
+
 	@NotBlank(message = "description is required.")
 	private String description;
-	
+
 	@NotBlank(message = "coulmns is required.")
 	private List<String> columns;
 
